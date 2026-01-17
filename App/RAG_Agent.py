@@ -53,14 +53,30 @@ class MushroomRAGAgent:
             Keep all descriptions very concise - only few words per point.
         """
 
-        # Configure Gemini with new API
-        self.client = genai.Client(api_key=api_key)
+       
+        self.online_mode = False
+        self.client = None
+        self.chat = None
         self.model_name = model_name
 
-        # Initialize chat with automatic history management ✅
-        self.chat = self.client.chats.create(model=model_name,
-                                             config=GenerateContentConfig(system_instruction=self.system_instructions))
+        # Try if api is avaible
+        if api_key:
+            try:
+                # Configure Gemini with new API
+                self.client = genai.Client(api_key=api_key)
+                # Initialize chat with automatic history management ✅
+                self.chat = self.client.chats.create(
+                    model=model_name,
+                    config=GenerateContentConfig(system_instruction=self.system_instructions)
+                )
+                self.online_mode = True
+                print("Połączono z Gemini API.")
+            except Exception as e:
+                print(f"Problem z połączeniem lub kluczem API ({e}).")
+        else:
+            print("Brak klucza API.")
 
+       
         # Knowledge base
         self.knowledge_base = knowledge_base
 
@@ -126,6 +142,10 @@ class MushroomRAGAgent:
         return "\n".join(context_parts)
 
     def send_message(self, user_message: str, top_k: int = 3, verbose: bool = False) -> str:
+        # Block if there is no internet connection
+        if not self.online_mode:
+            return "No internet connection. Please connect to the internet to chat with the mycologist assistant."
+
         relevant_docs = self._retrieve_relevant_docs(user_message, top_k=top_k)
 
         # ADD CONTEXT FROM PREVIOUS QUERY
@@ -155,20 +175,42 @@ class MushroomRAGAgent:
             return f"Error: {str(e)}"
 
     def clear_history(self):
-        self.chat = self.client.chats.create(model=self.model_name)
+        if self.online_mode and self.client:
+            self.chat = self.client.chats.create(model=self.model_name)
         self.first_retrieved_docs = []
         print("✓ Conversation history cleared")
 
     def get_history(self) -> List:
-        return self.chat.get_history()
+        if self.online_mode and self.chat:
+            return self.chat.get_history()
+        return []
 
 
     def initialize_from_predictions(self, predictions: Dict[str, float], verbose: bool = False) -> str:
 
         # Sort by confidence
         sorted_predictions = sorted(predictions.items(), key=lambda x: x[1], reverse=True)
+        primary_species, primary_conf = sorted_predictions[0]
 
+        # If there is not internet connection print predictions and warning
+        if not self.online_mode:
+            alts_list = [f"- {s} (Confidence: {c:.2%})" for s, c in sorted_predictions[1:]]
+            alts = "\n".join(alts_list)
+            return f"""[OFFLINE MODE - NO INTERNET CONNECTION]
+
+PRIMARY PREDICTION:
+Name: {primary_species}
+Confidence: {primary_conf:.2%}
+
+ALTERNATIVE PREDICTIONS:
+{alts if alts else "None"}
+
+⚠️ NOTE: Information from the Knowledge Base is unavailable.
+Please connect to the internet to receive a detailed identification card,
+safety warnings, and look-alike analysis."""
+        
         # Retrieve documents for predicted species
+
         relevant_docs = []
         for species, confidence in sorted_predictions:
             relevant_docs.extend(self._retrieve_relevant_docs(species, top_k=2))
