@@ -3,6 +3,7 @@ from google.genai.types import GenerateContentConfig
 from typing import List, Dict, Tuple
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from pathlib import Path
 
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
@@ -19,11 +20,15 @@ class MushroomRAGAgent:
             3. For POISONOUS/TOXIC mushrooms, emphasize warnings STRONGLY with emojis (🚨⚠️💀)
             4. Never make up information - only use what's in the provided documents
             5. If the species is not specified in question answer about primary species or alternative species
+            6. Only use images from the PROVIDED IMAGE PATHS
+            7. Max 2 images per response
+            8. If the user asks for more images, please select a different one than before
 
             OUTPUT FORMAT:
             - For the FIRST identification query: Use the structured format below
             - For follow-up questions: Respond conversationally and concisely
 
+            Image usage format: <img src="{IMAGE_PATH}"/>
 
             STRUCTURED FORMAT (first query only):
             Name: [Common Name] ([Scientific Name])
@@ -49,6 +54,8 @@ class MushroomRAGAgent:
 
             Alternative predictions:
             - [All alternative predictions]
+
+            Image of primary prediction.
 
             Keep all descriptions very concise - only few words per point.
         """
@@ -240,6 +247,19 @@ safety warnings, and look-alike analysis."""
         except Exception as e:
             return f"Error: {str(e)}"
 
+    def _build_image_context(self, base_dir):
+        base = Path(base_dir)
+
+        lines = []
+
+        for d in base.iterdir():
+            if d.is_dir():
+                lines.append(f"- {d.name}:")
+                for p in d.iterdir():
+                    if p.suffix.lower() in {".jpg", ".jpeg", ".png"}:
+                        lines.append(f"  - {p.as_posix()}")
+
+        return "\n".join(lines)
 
     def _build_identification_context(self, relevant_docs: List[Dict],
                                       predictions: List[Tuple[str, float]]) -> str:
@@ -256,6 +276,9 @@ safety warnings, and look-alike analysis."""
             context_parts.append("ALTERNATIVE PREDICTIONS:")
             for i, (species, conf) in enumerate(predictions[1:], 2):
                 context_parts.append(f"{species} (Confidence: {conf:.2%})")
+
+        context_parts.append("\n=== PROVIDED IMAGE PATHS ===\n")
+        context_parts.append(self._build_image_context("example_images"))
 
         context_parts.append("\n=== MUSHROOM KNOWLEDGE BASE ===\n")
 
