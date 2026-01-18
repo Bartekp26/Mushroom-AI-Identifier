@@ -3,6 +3,7 @@
 import streamlit as st
 from PIL import Image
 import numpy as np
+import re
 
 from config import (
     API_KEY, KNOWLEDGE_BASE_FILES, EMBEDDINGS_PATH,
@@ -117,20 +118,37 @@ with chat_ui:
         # Display messages
         with chat_container:
             for msg in st.session_state["messages"]:
+                role_class = "user-bubble" if msg["role"] == "user" else "assistant-bubble"
                 if msg["role"] == "user":
                     c1, c2 = st.columns([1, 4])
                     with c2:
-                        st.markdown(
-                            f'<div class="user-bubble">{msg["content"]}</div>',
-                            unsafe_allow_html=True
-                        )
+                        st.markdown(f'<div class="{role_class}">{msg["content"]}</div>', unsafe_allow_html=True)
                 else:
                     c1, c2 = st.columns([4, 1])
                     with c1:
-                        st.markdown(
-                            f'<div class="assistant-bubble">{msg["content"]}</div>',
-                            unsafe_allow_html=True
-                        )
+                        content = msg["content"]
+                        
+                        img_match = re.search(r'<img src="([^"]+)"/>', content)
+                        
+                        if img_match:
+                            full_match = img_match.group(0) 
+                            img_path = img_match.group(1)   
+                            
+                            parts = content.split(full_match)
+                            
+                            if parts[0].strip():
+                                st.markdown(f'<div class="{role_class}">{parts[0]}</div>', unsafe_allow_html=True)
+                            try:
+                                img_col, spacer_col = st.columns([1, 1]) 
+                                with img_col:
+                                    st.image(img_path, use_container_width=True)
+                            except Exception as e:
+                                st.error(f"Could not load image")
+                            if len(parts) > 1 and parts[1].strip():
+                                st.markdown(f'<div class="{role_class}">{parts[1]}</div>', unsafe_allow_html=True)
+                        else:
+                            st.markdown(f'<div class="{role_class}">{content}</div>', unsafe_allow_html=True)
+                                
 
         # Chat input
         if prompt := st.chat_input("Ask a follow-up question..."):
