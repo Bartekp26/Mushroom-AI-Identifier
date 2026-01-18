@@ -13,8 +13,8 @@ CUSTOM_CSS = """
     }
 
     .stApp {
-        background-color: #1b261d;
-        color: #e0e7e1;
+        background-color: #190b28;
+        color: #edfdee;
     }
 
     div[data-testid="stChatMessageContainer"] {
@@ -23,7 +23,7 @@ CUSTOM_CSS = """
 
     .header-style {
         text-align: center;
-        color: #94ad9a !important;
+        color: #edfdee !important;
         font-family: 'Segoe UI', Tahoma, sans-serif;
         font-weight: bold;
         text-transform: uppercase;
@@ -37,24 +37,24 @@ CUSTOM_CSS = """
     }
 
     .user-bubble {
-        background-color: #2e5a39; 
-        color: #ffffff; 
+        background-color: #23967f; 
+        color: #edfdee; 
         padding: 15px; 
         border-radius: 18px 18px 2px 18px; 
         margin-bottom: 15px; 
-        border: 1px solid #3d7a4c;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+        border: 2px solid #1a6e5d;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
         animation: slideUp 0.4s ease-out;
     }
 
     .assistant-bubble {
-        background-color: #38453a; 
-        color: #e8ede9; 
+        background-color: #bd4089; 
+        color: #edfdee; 
         padding: 15px; 
         border-radius: 18px 18px 18px 2px; 
         margin-bottom: 15px; 
-        border: 1px solid #4a5c4d;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+        border: 2px solid #8a2f64; /* Ciemniejszy odcień Fuchsia Plum */
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
         animation: slideUp 0.4s ease-out;
     }
 
@@ -62,14 +62,5 @@ CUSTOM_CSS = """
         background-color: transparent !important;
     }
 
-    .stChatInputContainer {
-        background-color: #2d3e30 !important;
-        border-radius: 10px !important;
-    }
-
-    section[data-testid="stFileUploadDropzone"] {
-        background-color: #2d3e30 !important;
-        border: 1px dashed #4e6b54 !important;
-    }
     </style>
 """
