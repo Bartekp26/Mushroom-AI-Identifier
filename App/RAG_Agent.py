@@ -276,16 +276,14 @@ safety warnings, and look-alike analysis."""
         if primary_conf < 0.90:
             context_parts.append(
                 f"""Tell the user this warning:
+⚠️ Confidence: {primary_conf:.2%} - EXPERT VERIFICATION REQUIRED
 
-                ⚠️ Confidence: {primary_conf:.2%} - EXPERT VERIFICATION REQUIRED
+🔍 For better identification, please provide additional photos:
+- Cap underside (gills/pores)
+- Full stem with base
+- Growing habitat and surroundings
 
-                🔍 For better identification, please provide additional photos:
-                - Cap underside (gills/pores)
-                - Full stem with base
-                - Growing habitat and surroundings
-
-                Clear photos from multiple angles help distinguish similar species."""
-            )
+Clear photos from multiple angles help distinguish similar species.""")
 
         if len(predictions) > 1:
             context_parts.append(

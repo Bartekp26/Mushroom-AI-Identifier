@@ -16,9 +16,10 @@ GEMINI_MODEL_NAME = "gemini-2.5-flash-lite"
 
 # Knowledge Base Configuration
 KNOWLEDGE_BASE_FILES = [
-    "Knowledge_base/mushroom_guide.json",
+    "Knowledge_base/wild_food_uk.json",
     "Knowledge_base/mushroom_world.json",
-    "Knowledge_base/wikipedia.json"
+    "Knowledge_base/wikipedia.json",
+    "Knowledge_base/others.json"
 ]
 EMBEDDINGS_PATH = "Knowledge_base/embeddings.npy"
 
