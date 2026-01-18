@@ -127,27 +127,28 @@ with chat_ui:
                     c1, c2 = st.columns([4, 1])
                     with c1:
                         content = msg["content"]
-                        
-                        img_match = re.search(r'<img src="([^"]+)"/>', content)
-                        
-                        if img_match:
-                            full_match = img_match.group(0) 
-                            img_path = img_match.group(1)   
-                            
-                            parts = content.split(full_match)
-                            
-                            if parts[0].strip():
-                                st.markdown(f'<div class="{role_class}">{parts[0]}</div>', unsafe_allow_html=True)
-                            try:
-                                img_col, spacer_col = st.columns([1, 1]) 
-                                with img_col:
-                                    st.image(img_path, use_container_width=True)
-                            except Exception as e:
-                                st.error(f"Could not load image")
-                            if len(parts) > 1 and parts[1].strip():
-                                st.markdown(f'<div class="{role_class}">{parts[1]}</div>', unsafe_allow_html=True)
-                        else:
+                        role_class = "assistant-bubble"
+                        matches = list(re.finditer(r'<img src="([^"]+)"/>', content))
+
+                        if not matches:
                             st.markdown(f'<div class="{role_class}">{content}</div>', unsafe_allow_html=True)
+                        else:
+                            last_pos = 0
+                            for match in matches:
+                                text_before = content[last_pos:match.start()].strip()
+                                if text_before:
+                                    st.markdown(f'<div class="{role_class}">{text_before}</div>', unsafe_allow_html=True)
+                                img_path = match.group(1)
+                                try:
+                                    st.image(img_path, width = 250)
+                                except Exception:
+                                    st.error(f"Image not found: {img_path}")
+                                
+                                last_pos = match.end()
+                            text_after = content[last_pos:].strip()
+                            if text_after:
+                                st.markdown(f'<div class="{role_class}">{text_after}</div>', unsafe_allow_html=True)
+                        
                                 
 
         # Chat input
