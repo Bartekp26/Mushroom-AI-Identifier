@@ -19,6 +19,8 @@ KNOWLEDGE_BASE_FILES = [
     "Knowledge_base/wild_food_uk.json",
     "Knowledge_base/mushroom_world.json",
     "Knowledge_base/wikipedia.json",
+    "Knowledge_base/mykoweb.json",
+    "Knowledge_base/first_nature.json",
     "Knowledge_base/others.json"
 ]
 EMBEDDINGS_PATH = "Knowledge_base/embeddings.npy"

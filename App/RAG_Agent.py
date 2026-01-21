@@ -21,8 +21,8 @@ class MushroomRAGAgent:
             4. Never make up information - only use what's in the provided documents
             5. If the species is not specified in question answer about primary species or alternative species
             6. Only use images from the PROVIDED IMAGE PATHS
-            7. Max 2 images per response
-            8. If the user asks for more images, please select a different one than before
+            7. If the user asks for more images, please select a different one than before
+            8. Never tell the user, you are sure about prediction even if there is 100% confidence
 
             OUTPUT FORMAT:
             - For the FIRST identification query: Use the structured format below
@@ -55,12 +55,11 @@ class MushroomRAGAgent:
             Alternative predictions:
             - [All alternative predictions]
 
-            Image of primary prediction.
+            Image of primary prediction:
 
             Keep all descriptions very concise - only few words per point.
         """
 
-       
         self.online_mode = False
         self.client = None
         self.chat = None
@@ -83,7 +82,6 @@ class MushroomRAGAgent:
         else:
             print("Brak klucza API.")
 
-       
         # Knowledge base
         self.knowledge_base = knowledge_base
 
@@ -103,7 +101,7 @@ class MushroomRAGAgent:
         self.first_retrieved_docs = None
 
 
-    def _retrieve_relevant_docs(self, query: str, top_k: int = 3) -> List[Dict[str, any]]:
+    def _retrieve_relevant_docs(self, query: str, top_k: int = 5) -> List[Dict[str, any]]:
         # Create embedding for the query
         query_embedding = self.embedding_model.encode(query)
 
@@ -148,7 +146,8 @@ class MushroomRAGAgent:
 
         return "\n".join(context_parts)
 
-    def send_message(self, user_message: str, top_k: int = 3, verbose: bool = False) -> str:
+
+    def send_message(self, user_message: str, top_k: int = 5, verbose: bool = False) -> str:
         # Block if there is no internet connection
         if not self.online_mode:
             return "No internet connection. Please connect to the internet to chat with the mycologist assistant."
@@ -220,7 +219,7 @@ safety warnings, and look-alike analysis."""
 
         relevant_docs = []
         for species, confidence in sorted_predictions:
-            relevant_docs.extend(self._retrieve_relevant_docs(species, top_k=2))
+            relevant_docs.extend(self._retrieve_relevant_docs(species, top_k=3))
 
         self.first_retrieved_docs = relevant_docs
 
@@ -242,7 +241,7 @@ safety warnings, and look-alike analysis."""
                 'primary': sorted_predictions[0],
                 'alternatives': sorted_predictions[1:],
             }
-
+            print(response.text)
             return response.text
         except Exception as e:
             return f"Error: {str(e)}"
@@ -304,7 +303,6 @@ safety warnings, and look-alike analysis."""
 🔍 For better identification, please provide additional photos:
 - Cap underside (gills/pores)
 - Full stem with base
-- Growing habitat and surroundings
 
 Clear photos from multiple angles help distinguish similar species.""")
 
